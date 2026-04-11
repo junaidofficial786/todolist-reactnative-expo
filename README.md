@@ -1,50 +1,71 @@
-# Welcome to your Expo app 👋
+# Smart To-Do (Expo + React Native)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A production-style task app with categories, filters, due dates, swipe-to-delete, dark mode, AsyncStorage persistence, and a centralized theme (Todoist / Notion inspired UI).
 
-## Get started
+## Prerequisites
 
-1. Install dependencies
+- [Node.js](https://nodejs.org/) (LTS recommended)
+- [Expo CLI](https://docs.expo.dev/get-started/installation/) via `npx` (no global install required)
 
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Install
 
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### Dependencies (already in `package.json`)
 
-## Learn more
+Core packages used by this project:
 
-To learn more about developing your project with Expo, look at the following resources:
+```bash
+npx expo install expo expo-status-bar expo-splash-screen expo-system-ui expo-haptics expo-font expo-constants
+npx expo install react react-native react-native-web react-dom
+npx expo install react-native-gesture-handler react-native-reanimated react-native-safe-area-context react-native-screens react-native-worklets
+npx expo install @react-navigation/native @react-navigation/native-stack
+npx expo install @react-native-async-storage/async-storage @react-native-community/datetimepicker @expo/vector-icons
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Run
 
-## Join the community
+```bash
+npm start
+```
 
-Join our community of developers creating universal apps.
+Then press `i` for iOS simulator, `a` for Android emulator, or scan the QR code with **Expo Go**.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```bash
+npm run ios
+npm run android
+```
+
+## Project layout
+
+```text
+App.tsx                 # Entry: providers + root navigator
+src/
+  components/           # Reusable UI (TaskItem, Button, theme toggle, FAB, …)
+  screens/              # Home, AddTask, EditTask
+  navigation/           # Native stack + types
+  context/              # Task + Theme (AsyncStorage)
+  hooks/                # Filtered list + progress helpers
+  utils/                # IDs, dates, categories, storage keys, sample data
+  theme/                # colors.js, spacing.js, typography.js + index.ts
+```
+
+## Features
+
+- Add / edit / delete tasks (swipe left on a card, tap **Delete**)
+- Optional description, category (Work / Personal / Gym), due date (native picker)
+- Filters: All, Pending, Completed
+- Progress bar (completed vs total)
+- Light / dark theme toggle (persisted)
+- Sample tasks on first launch when no saved data exists
+
+## Resetting data
+
+Uninstall the app or clear app data, or remove the keys `@smart_todo/tasks_v1` and `@smart_todo/theme_mode_v1` from storage using a dev menu / debugger if you need a clean slate.
+
+## Notes
+
+- `babel.config.js` includes `react-native-reanimated/plugin` (must stay last).
+- `App.tsx` imports `react-native-gesture-handler` and `react-native-reanimated` at the top level, as required by those libraries.

@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "todoListReactNative",
+    "name": "Smart To-Do",
     "slug": "todoListReactNative",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -22,11 +22,11 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "output": "static",
+      "bundler": "metro",
+      "output": "single",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router",
       [
         "expo-splash-screen",
         {
@@ -35,14 +35,10 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",
           "dark": {
-            "backgroundColor": "#000000"
+            "backgroundColor": "#0f0f0f"
           }
         }
       ]
-    ],
-    "experiments": {
-      "typedRoutes": true,
-      "reactCompiler": true
-    }
+    ]
   }
 }
