@@ -1,6 +1,6 @@
 import React, { useCallback, useRef } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { Pressable, Swipeable } from 'react-native-gesture-handler';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable as GHPressable, Swipeable } from 'react-native-gesture-handler';
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -10,6 +10,9 @@ import type { Task } from '@/context/types';
 import { formatDueDate, isOverdue } from '@/utils/dateFormat';
 
 import { CategoryBadge } from './CategoryBadge';
+
+/** RNGH `Pressable` is unreliable on web; native uses it inside `Swipeable` for better gesture coordination. */
+const CardPressable = Platform.OS === 'web' ? Pressable : GHPressable;
 
 type Props = {
   task: Task;
@@ -34,7 +37,7 @@ export function TaskItem({ task, onToggle, onPress, onDelete }: Props) {
 
   const renderRight = useCallback(() => {
     return (
-      <Pressable
+      <GHPressable
         onPress={handleDelete}
         style={[
           styles.deleteWrap,
@@ -57,12 +60,124 @@ export function TaskItem({ task, onToggle, onPress, onDelete }: Props) {
         >
           Delete
         </Text>
-      </Pressable>
+      </GHPressable>
     );
   }, [handleDelete, theme]);
 
   const dueLabel = formatDueDate(task.dueDate);
   const overdue = !task.completed && isOverdue(task.dueDate);
+
+  const cardBody = (
+    <CardPressable
+      onPress={() => onPress(task.id)}
+      style={({ pressed }) => [
+        styles.card,
+        {
+          backgroundColor: theme.colors.surface,
+          borderRadius: theme.radii.lg,
+          padding: theme.spacing.md,
+          borderWidth: StyleSheet.hairlineWidth,
+          borderColor: theme.colors.borderSubtle,
+          opacity: pressed ? 0.96 : 1,
+          transform: [{ scale: pressed ? 0.995 : 1 }],
+        },
+        task.completed
+          ? {
+              opacity: 0.72,
+            }
+          : null,
+        theme.mode === 'light'
+          ? {
+              shadowColor: theme.colors.shadow,
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 1,
+              shadowRadius: 12,
+              elevation: 3,
+            }
+          : {
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.35,
+              shadowRadius: 8,
+              elevation: 2,
+            },
+      ]}
+    >
+      <View style={styles.topRow}>
+        <Pressable
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
+            onToggle(task.id);
+          }}
+          style={[
+            styles.checkbox,
+            {
+              borderColor: task.completed ? theme.colors.success : theme.colors.border,
+              backgroundColor: task.completed ? theme.colors.successMuted : 'transparent',
+              borderRadius: theme.radii.sm,
+              width: 26,
+              height: 26,
+            },
+          ]}
+        >
+          {task.completed ? (
+            <Ionicons name="checkmark" size={18} color={theme.colors.success} />
+          ) : null}
+        </Pressable>
+        <View style={[styles.titleBlock, Platform.OS === 'web' ? styles.titleBlockWeb : null]}>
+          <Text
+            numberOfLines={2}
+            style={[
+              styles.title,
+              {
+                color: theme.colors.textPrimary,
+                fontSize: theme.typography.sizes.md,
+                fontWeight: theme.typography.weights.semibold,
+                textDecorationLine: task.completed ? 'line-through' : 'none',
+              },
+            ]}
+          >
+            {task.title}
+          </Text>
+          {task.description ? (
+            <Text
+              numberOfLines={2}
+              style={{
+                color: theme.colors.textSecondary,
+                fontSize: theme.typography.sizes.sm,
+                marginTop: theme.spacing.xxs,
+                textDecorationLine: task.completed ? 'line-through' : 'none',
+              }}
+            >
+              {task.description}
+            </Text>
+          ) : null}
+        </View>
+      </View>
+      <View style={[styles.meta, { marginTop: theme.spacing.sm }]}>
+        <CategoryBadge category={task.category} />
+        {dueLabel ? (
+          <View style={styles.dueRow}>
+            <Ionicons
+              name="calendar-outline"
+              size={14}
+              color={overdue ? theme.colors.accent : theme.colors.textMuted}
+            />
+            <Text
+              style={{
+                marginLeft: theme.spacing.xxs,
+                color: overdue ? theme.colors.accent : theme.colors.textMuted,
+                fontSize: theme.typography.sizes.xs,
+                fontWeight: overdue ? theme.typography.weights.semibold : theme.typography.weights.regular,
+              }}
+            >
+              {dueLabel}
+            </Text>
+          </View>
+        ) : null}
+      </View>
+    </CardPressable>
+  );
 
   return (
     <Animated.View
@@ -71,127 +186,53 @@ export function TaskItem({ task, onToggle, onPress, onDelete }: Props) {
       layout={LinearTransition.springify().damping(18).stiffness(220)}
       style={{ marginHorizontal: theme.spacing.lg, marginBottom: theme.spacing.sm }}
     >
-      <Swipeable
-        ref={swipeRef}
-        friction={2}
-        overshootRight={false}
-        renderRightActions={renderRight}
-      >
-        <Pressable
-          onPress={() => onPress(task.id)}
-          style={({ pressed }) => [
-            styles.card,
-            {
-              backgroundColor: theme.colors.surface,
-              borderRadius: theme.radii.lg,
-              padding: theme.spacing.md,
-              borderWidth: StyleSheet.hairlineWidth,
-              borderColor: theme.colors.borderSubtle,
-              opacity: pressed ? 0.96 : 1,
-              transform: [{ scale: pressed ? 0.995 : 1 }],
-            },
-            task.completed
-              ? {
-                  opacity: 0.72,
-                }
-              : null,
-            theme.mode === 'light'
-              ? {
-                  shadowColor: theme.colors.shadow,
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 1,
-                  shadowRadius: 12,
-                  elevation: 3,
-                }
-              : {
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.35,
-                  shadowRadius: 8,
-                  elevation: 2,
-                },
-          ]}
+      {Platform.OS === 'web' ? (
+        <View style={styles.webWrap}>
+          {cardBody}
+          <Pressable
+            onPress={handleDelete}
+            accessibilityLabel="Delete task"
+            style={({ pressed }) => [
+              styles.webDelete,
+              {
+                backgroundColor: theme.colors.destructiveBackground,
+                borderRadius: theme.radii.md,
+                borderWidth: StyleSheet.hairlineWidth,
+                borderColor: theme.colors.border,
+                opacity: pressed ? 0.85 : 1,
+              },
+            ]}
+          >
+            <Ionicons name="trash-outline" size={18} color={theme.colors.destructive} />
+          </Pressable>
+        </View>
+      ) : (
+        <Swipeable
+          ref={swipeRef}
+          friction={2}
+          overshootRight={false}
+          renderRightActions={renderRight}
         >
-          <View style={styles.topRow}>
-            <Pressable
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
-                onToggle(task.id);
-              }}
-              style={[
-                styles.checkbox,
-                {
-                  borderColor: task.completed ? theme.colors.success : theme.colors.border,
-                  backgroundColor: task.completed ? theme.colors.successMuted : 'transparent',
-                  borderRadius: theme.radii.sm,
-                  width: 26,
-                  height: 26,
-                },
-              ]}
-            >
-              {task.completed ? (
-                <Ionicons name="checkmark" size={18} color={theme.colors.success} />
-              ) : null}
-            </Pressable>
-            <View style={styles.titleBlock}>
-              <Text
-                numberOfLines={2}
-                style={[
-                  styles.title,
-                  {
-                    color: theme.colors.textPrimary,
-                    fontSize: theme.typography.sizes.md,
-                    fontWeight: theme.typography.weights.semibold,
-                    textDecorationLine: task.completed ? 'line-through' : 'none',
-                  },
-                ]}
-              >
-                {task.title}
-              </Text>
-              {task.description ? (
-                <Text
-                  numberOfLines={2}
-                  style={{
-                    color: theme.colors.textSecondary,
-                    fontSize: theme.typography.sizes.sm,
-                    marginTop: theme.spacing.xxs,
-                    textDecorationLine: task.completed ? 'line-through' : 'none',
-                  }}
-                >
-                  {task.description}
-                </Text>
-              ) : null}
-            </View>
-          </View>
-          <View style={[styles.meta, { marginTop: theme.spacing.sm }]}>
-            <CategoryBadge category={task.category} />
-            {dueLabel ? (
-              <View style={styles.dueRow}>
-                <Ionicons
-                  name="calendar-outline"
-                  size={14}
-                  color={overdue ? theme.colors.accent : theme.colors.textMuted}
-                />
-                <Text
-                  style={{
-                    marginLeft: theme.spacing.xxs,
-                    color: overdue ? theme.colors.accent : theme.colors.textMuted,
-                    fontSize: theme.typography.sizes.xs,
-                    fontWeight: overdue ? theme.typography.weights.semibold : theme.typography.weights.regular,
-                  }}
-                >
-                  {dueLabel}
-                </Text>
-              </View>
-            ) : null}
-          </View>
-        </Pressable>
-      </Swipeable>
+          {cardBody}
+        </Swipeable>
+      )}
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
+  webWrap: {
+    position: 'relative',
+  },
+  webDelete: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   card: {},
   topRow: {
     flexDirection: 'row',
@@ -205,6 +246,9 @@ const styles = StyleSheet.create({
   },
   titleBlock: {
     flex: 1,
+  },
+  titleBlockWeb: {
+    paddingRight: 44,
   },
   title: {},
   meta: {

@@ -1,6 +1,5 @@
 import React from 'react';
-import { StyleSheet, ViewStyle } from 'react-native';
-import { Pressable } from 'react-native-gesture-handler';
+import { Pressable, StyleSheet, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useTheme } from '@/context/ThemeContext';
@@ -42,6 +41,7 @@ export function FloatingActionButton({ onPress, style }: Props) {
               elevation: 10,
             },
         style,
+        styles.onTop,
       ]}
     >
       <Ionicons name="add" size={28} color={theme.colors.fabIcon} />
@@ -54,5 +54,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  onTop: {
+    zIndex: 1000,
+    elevation: 24,
   },
 });

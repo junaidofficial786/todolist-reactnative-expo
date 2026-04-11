@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -9,10 +10,10 @@ import {
   View,
 } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
-import { Pressable } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 
 import { Button } from '@/components/Button';
+import { WebHtmlDateInput } from '@/components/WebHtmlDateInput';
 import { useTheme } from '@/context/ThemeContext';
 import type { CategoryId, TaskDraft } from '@/context/types';
 import { CATEGORY_LABELS, CATEGORY_ORDER } from '@/utils/categories';
@@ -238,27 +239,37 @@ export function TaskForm({ initial, submitLabel, onSubmit }: Props) {
                 {dueDate ? dueLabel : 'No date'}
               </Text>
             </View>
-            <Pressable
-              onPress={() => setShowPicker((v) => !v)}
-              style={[
-                styles.iconBtn,
-                {
-                  backgroundColor: theme.colors.chipBackground,
-                  borderRadius: theme.radii.md,
-                  width: 44,
-                  height: 44,
-                },
-              ]}
-            >
-              <Ionicons name="calendar-outline" size={22} color={theme.colors.textPrimary} />
-            </Pressable>
+            {Platform.OS === 'web' ? (
+              <WebHtmlDateInput
+                value={dueDate}
+                onChange={setDueDate}
+                borderColor={theme.colors.border}
+                backgroundColor={theme.colors.inputBackground}
+                color={theme.colors.textPrimary}
+              />
+            ) : (
+              <Pressable
+                onPress={() => setShowPicker((v) => !v)}
+                style={[
+                  styles.iconBtn,
+                  {
+                    backgroundColor: theme.colors.chipBackground,
+                    borderRadius: theme.radii.md,
+                    width: 44,
+                    height: 44,
+                  },
+                ]}
+              >
+                <Ionicons name="calendar-outline" size={22} color={theme.colors.textPrimary} />
+              </Pressable>
+            )}
           </View>
           {dueDate ? (
             <Pressable onPress={() => setDueDate(null)} style={{ marginTop: theme.spacing.sm }}>
               <Text style={{ color: theme.colors.accent, fontSize: theme.typography.sizes.sm }}>Clear date</Text>
             </Pressable>
           ) : null}
-          {showPicker ? (
+          {Platform.OS !== 'web' && showPicker ? (
             <>
               <DateTimePicker
                 value={dueDate ?? new Date()}
@@ -304,6 +315,8 @@ const styles = StyleSheet.create({
   dateRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 12,
   },
   iconBtn: {
     alignItems: 'center',

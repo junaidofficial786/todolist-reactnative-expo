@@ -75,7 +75,7 @@ export function HomeScreen() {
 
   return (
     <ScreenContainer edges={['top', 'left', 'right']}>
-      <View style={styles.flex}>
+      <View style={styles.layer} pointerEvents="box-none">
         <FlatList
           data={filtered}
           keyExtractor={keyExtractor}
@@ -98,6 +98,10 @@ export function HomeScreen() {
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
+  },
+  layer: {
+    flex: 1,
+    position: 'relative',
   },
   listContent: {
     paddingBottom: 120,
